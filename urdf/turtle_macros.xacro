@@ -30,7 +30,7 @@
     </xacro:macro>
 
 
-    <xacro:macro name="diff_wheel" params="prefix parent_link x_offset y_offset color">
+    <xacro:macro name="diff_wheel" params="prefix parent_link x_offset y_offset wheel_radius wheel_width color">
         <link name="${prefix}_wheel_link">
             <visual>
                 <origin xyz="0 0 0" rpy="1.5708 0 0"/>

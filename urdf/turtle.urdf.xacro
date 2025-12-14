@@ -4,10 +4,10 @@
 
     <xacro:include filename="$(find turtle_description)/urdf/turtle_macros.xacro"/>
 
-    <xacro:base_link robot_length="0.3" robot_width="0.25" robot_height="0.25" color="red_color" />
+    <xacro:base_link robot_length="0.3" robot_width="0.25" robot_height="0.125" color="red_color" />
     
-    <xacro:diff_wheel prefix="right" parent_link="base_link" x_offset="0" y_offset="-0.15" color="blue_color"/>
-    <xacro:diff_wheel prefix="left" parent_link="base_link" x_offset="0" y_offset="0.15" color="blue_color"/> 
+    <xacro:diff_wheel prefix="right" parent_link="base_link" x_offset="0" y_offset="-0.15" wheel_radius="0.085" wheel_width="0.025" color="blue_color"/>
+    <xacro:diff_wheel prefix="left" parent_link="base_link" x_offset="0" y_offset="0.15" wheel_radius="0.085" wheel_width="0.025" color="blue_color"/> 
     
     <xacro:fixed_sensor name="laser" parent_link="base_link" 
                         xyz="0.15 0 0.08" rpy="0 0 0" 
@@ -15,20 +15,15 @@
 
     
     <gazebo>
-        <plugin filename="libignition-gazebo-diff-drive-system.so" 
-                name="ignition::gazebo::systems::DiffDrive">
-            
-            <left_joint>left_wheel_joint</left_joint>
-            <right_joint>right_wheel_joint</right_joint>
-            <wheel_separation>0.30</wheel_separation>
-            <wheel_radius>0.033</wheel_radius>
-            
-            <topic>cmd_vel</topic> 
-            <odom_topic>odom</odom_topic> 
-
-            <odom_frame>odom</odom_frame>
-            <robot_base_frame>base_link</robot_base_frame>
-            <publish_odom_tf>true</publish_odom_tf> </plugin>
+        <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+            <left_wheel>left_wheel_joint</left_wheel>
+            <right_wheel>right_wheel_joint</right_wheel>
+            <wheel_separation>0.3</wheel_separation> 
+            <wheel_radius>0.085</wheel_radius>
+            <command_topic>cmd_vel</command_topic>
+            <odom_topic>odom</odom_topic>
+            <update_rate>50</update_rate> 
+        </plugin>
     </gazebo>
 
     <gazebo>
