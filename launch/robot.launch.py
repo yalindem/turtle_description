@@ -1,7 +1,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
@@ -101,6 +101,21 @@ def generate_launch_description():
         condition=IfCondition(start_rviz) 
     )
 
+    diff_drive_kinematic_node = Node(
+        package='turtle_description',
+        executable='diff_drive_node',
+        name='diff_drive_node',
+        output='screen'
+    )
+
+    cmd_vel_publisher = ExecuteProcess(
+        cmd=[
+            'ros2', 'topic', 'pub', '/cmd_vel', 'geometry_msgs/msg/Twist',
+            '{"linear": {"x": 1.0}, "angular": {"z": 0.5}}', '-r', '1'
+        ],
+        output='screen'
+    )
+
     return LaunchDescription([
         # Add the new launch argument declaration
         declare_rviz_arg,
@@ -108,7 +123,9 @@ def generate_launch_description():
         declare_use_sim_time_arg,
         robot_state_publisher,
         joint_state_publisher_gui,
-        rviz2
+        diff_drive_kinematic_node,
+        rviz2,
+        cmd_vel_publisher
         #gz_sim,
         #spawn_entity
     ])
