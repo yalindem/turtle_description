@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="turtle_robot">
+
+    <xacro:property name="wheel_radius" value="0.033" />
+    <xacro:property name="wheel_width" value="0.025" />
+
+
+    <xacro:property name="laser_size_x" value="0.05"/>
+    <xacro:property name="laser_size_y" value="0.05"/>
+    <xacro:property name="laser_size_z" value="0.02"/>
+
+    <xacro:include filename="$(find turtle_description)/urdf/material_color.xacro"/>
+
+    <xacro:macro name="base_link" params="robot_length robot_width robot_height color">
+        <link name="base_link">
+            <visual>
+                <geometry>
+                    <box size="${robot_length} ${robot_width} ${robot_height}"/>
+                </geometry>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <material name="${color}"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <box size="${robot_length} ${robot_width} ${robot_height}"/>
+                </geometry>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+            </collision>
+        </link>
+    </xacro:macro>
+
+
+    <xacro:macro name="diff_wheel" params="prefix parent_link x_offset y_offset color">
+        <link name="${prefix}_wheel_link">
+            <visual>
+                <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+                <geometry>
+                    <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+                </geometry>
+                <material name="${color}"/>
+            </visual>
+        </link>
+
+        <joint name="${prefix}_wheel_joint" type="continuous">
+            <parent link="${parent_link}"/>
+            <child link="${prefix}_wheel_link"/>
+            <origin xyz="${x_offset} ${y_offset} 0" rpy="0 0 0"/>
+            <axis xyz="0 1 0"/>
+        </joint>
+
+        <gazebo reference="${prefix}_wheel_link">
+            <mu1 value="1.0"/>
+            <mu2 value="1.0"/>
+        </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="fixed_sensor" params="name parent_link xyz rpy size color_rgba topic_name">
+        <link name="${name}_link">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="${size}"/>
+                </geometry>
+                <material name="${name}_material"><color rgba="${color_rgba}"/></material>
+            </visual>
+        </link>
+
+        <joint name="${name}_joint" type="fixed">
+            <parent link="${parent_link}"/>
+            <child link="${name}_link"/>
+            <origin xyz="${xyz}" rpy="${rpy}"/>
+        </joint>
+
+        <gazebo reference="${name}_link">
+            <sensor name="${name}_sensor" type="gpu_lidar">
+                <update_rate>10</update_rate>
+                <ray>...</ray> 
+                <always_on>true</always_on>
+                <plugin filename="libignition-gazebo-sensors-system.so" 
+                        name="ignition::gazebo::systems::Sensors">
+                    <topic>${topic_name}</topic>
+                    <frame_name>${name}_link</frame_name> </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:macro>
+</robot>
