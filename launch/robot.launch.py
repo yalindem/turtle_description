@@ -1,6 +1,8 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 # Import the IfCondition module
@@ -15,10 +17,24 @@ def generate_launch_description():
         default_value='False', 
         description='Whether to start Rviz2'
     )
+
+    declare_gz_arg = DeclareLaunchArgument(
+        'start_gz', 
+        default_value='False', 
+        description='Whether to start Rviz2'
+    )
+
+    declare_use_sim_time_arg = DeclareLaunchArgument(
+        'use_sim_time', 
+        default_value='False', 
+        description='Whether to start with use_sim_time flag'
+    )
     
     # 2. Get the value of the argument during launch time
     # This value will be used in the IfCondition below
     start_rviz = LaunchConfiguration('start_rviz')
+    start_gz = LaunchConfiguration('start_gz')
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
     # Get package paths
     pkg_robot = get_package_share_directory('turtle_description') # Your package name
@@ -27,13 +43,46 @@ def generate_launch_description():
     # Generate robot description from XACRO
     robot_description = Command(['xacro ', xacro_file]) # Process xacro
 
+    '''
+    ros_gz_sim_share = get_package_share_directory('ros_gz_sim')
+    gz_launch_dir = os.path.join(ros_gz_sim_share, 'launch')
+
+
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(gz_launch_dir, 'gz_sim.launch.py')
+        ),
+        launch_arguments={'gz_args': 'empty.sdf -r'}.items(), # example: starts with empty world and runs immediately
+    )
+
+    gz_sim_node = Node(
+        package='gz',
+        executable='gz_sim',
+        name='gz_sim',
+        output='screen'    
+    )
+
+    spawn_entity = Node(
+        package='ros_gz_sim',
+        executable='create',
+        output='screen',
+        arguments=[
+            '-name', 'turtle',
+            '-topic', 'robot_description',
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.1',
+        ],
+    )
+
+    '''
     # Nodes to Launch
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[{'use_sim_time': False, 'robot_description': robot_description}] # Use generated description
+        parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_description}] # Use generated description
     )
 
     joint_state_publisher_gui = Node(
@@ -55,9 +104,11 @@ def generate_launch_description():
     return LaunchDescription([
         # Add the new launch argument declaration
         declare_rviz_arg,
-        DeclareLaunchArgument('use_sim_time', default_value='False', description='Use simulation time'),
-        
+        declare_gz_arg,
+        declare_use_sim_time_arg,
         robot_state_publisher,
         joint_state_publisher_gui,
         rviz2
+        #gz_sim,
+        #spawn_entity
     ])
