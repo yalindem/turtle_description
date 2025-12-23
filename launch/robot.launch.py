@@ -1,131 +1,90 @@
 import os
-from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, ExecuteProcess
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
-# Import the IfCondition module
-from launch.conditions import IfCondition 
-from launch.substitutions import LaunchConfiguration, Command
-# from launch.launch_description_sources import PythonLaunchDescriptionSource # This import wasn't used
+from launch import LaunchDescription
+from launch.conditions import IfCondition
+from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, ExecuteProcess
+from launch.substitutions import PathJoinSubstitution
 
 def generate_launch_description():
-    # 1. Define the launch argument for controlling Rviz start up
-    declare_rviz_arg = DeclareLaunchArgument(
-        'start_rviz', 
-        default_value='False', 
-        description='Whether to start Rviz2'
-    )
 
-    declare_gz_arg = DeclareLaunchArgument(
-        'start_gz', 
-        default_value='False', 
-        description='Whether to start Rviz2'
-    )
+    # Package name
+    package_name='turtle_description'
 
-    declare_use_sim_time_arg = DeclareLaunchArgument(
-        'use_sim_time', 
-        default_value='False', 
-        description='Whether to start with use_sim_time flag'
-    )
+    # Launch configurations
+    world = LaunchConfiguration('world')
+    rviz = LaunchConfiguration('rviz')
+
+    # Path to default world 
+    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'obstacles.world')
+
+    # Launch Arguments
+    declare_world = DeclareLaunchArgument(
+        name='world', default_value=world_path,
+        description='Full path to the world model file to load')
     
-    # 2. Get the value of the argument during launch time
-    # This value will be used in the IfCondition below
-    start_rviz = LaunchConfiguration('start_rviz')
-    start_gz = LaunchConfiguration('start_gz')
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    declare_rviz = DeclareLaunchArgument(
+        name='rviz', default_value='True',
+        description='Opens rviz is set to True')
 
-    # Get package paths
-    pkg_robot = get_package_share_directory('turtle_description') # Your package name
-    xacro_file = os.path.join(pkg_robot, 'urdf', 'turtle.urdf.xacro')
+    # Launch Robot State Publisher Node
+    urdf_path = os.path.join(get_package_share_directory(package_name),'urdf','robot.urdf')
+    rsp = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(package_name),'launch','rsp.launch.py'
+                )]), launch_arguments={'use_sim_time': 'true', 'urdf': urdf_path}.items()
+    )
+
     
-    # Generate robot description from XACRO
-    robot_description = Command(['xacro ', xacro_file]) # Process xacro
 
-    '''
-    ros_gz_sim_share = get_package_share_directory('ros_gz_sim')
-    gz_launch_dir = os.path.join(ros_gz_sim_share, 'launch')
-
-
-    gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gz_launch_dir, 'gz_sim.launch.py')
-        ),
-        launch_arguments={'gz_args': 'empty.sdf -r'}.items(), # example: starts with empty world and runs immediately
-    )
-
-    gz_sim_node = Node(
-        package='gz',
-        executable='gz_sim',
-        name='gz_sim',
-        output='screen'    
-    )
-
-    spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
-        output='screen',
+    # Launch the Gazebo-ROS bridge
+    bridge_params = os.path.join(get_package_share_directory(package_name),'config','gz_bridge.yaml')
+    ros_gz_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
         arguments=[
-            '-name', 'turtle',
-            '-topic', 'robot_description',
-            '-x', '0.0',
-            '-y', '0.0',
-            '-z', '0.1',
-        ],
+            '--ros-args',
+            '-p',
+            f'config_file:={bridge_params}',]
     )
 
-    '''
-    # Nodes to Launch
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_description}] # Use generated description
+    gz_proc = ExecuteProcess(
+            cmd=['gz', 'sim', '-r', 'empty.sdf'],
+            output='screen'
     )
 
-    joint_state_publisher_gui = Node(
-        package='joint_state_publisher_gui',
-        executable='joint_state_publisher_gui',
-        name='joint_state_publisher_gui',
-        output='screen'
+    gz_node = Node(
+            package='ros_gz_sim',
+            executable='create',
+            arguments=[
+                '-name', 'my_robot',
+                '-topic', 'robot_description'
+            ],
+            output='screen'
+    )
+    
+    # Launch Rviz with diff bot rviz file
+    #rviz_config_file = os.path.join(get_package_share_directory(package_name), 'rviz', 'bot.rviz')
+    rviz2 = GroupAction(
+        condition=IfCondition(rviz),
+        actions=[Node(
+                    package='rviz2',
+                    executable='rviz2',
+                    output='screen',)]
     )
 
-    rviz2 = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        # 3. Add the condition here: only launch if 'start_rviz' is 'True'
-        condition=IfCondition(start_rviz) 
-    )
-
-    diff_drive_kinematic_node = Node(
-        package='turtle_description',
-        executable='diff_drive_node',
-        name='diff_drive_node',
-        output='screen'
-    )
-
-    cmd_vel_publisher = ExecuteProcess(
-        cmd=[
-            'ros2', 'topic', 'pub', '/cmd_vel', 'geometry_msgs/msg/Twist',
-            '{"linear": {"x": 1.0}, "angular": {"z": 0.5}}', '-r', '1'
-        ],
-        output='screen'
-    )
-
+    # Launch them all!
     return LaunchDescription([
-        # Add the new launch argument declaration
-        declare_rviz_arg,
-        declare_gz_arg,
-        declare_use_sim_time_arg,
-        robot_state_publisher,
-        joint_state_publisher_gui,
-        diff_drive_kinematic_node,
+        # Declare launch arguments
+        declare_rviz,
+        declare_world,
+        gz_proc,
+        gz_node,
+        # Launch the nodes
         rviz2,
-        cmd_vel_publisher
-        #gz_sim,
-        #spawn_entity
+        rsp,
+        #ros_gz_bridge,
+        
     ])

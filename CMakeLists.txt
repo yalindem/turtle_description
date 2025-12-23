@@ -38,7 +38,7 @@ install(TARGETS
 # 1. URDF/Xacro dosyalarını kopyala
 # Dosyalar: install/share/turtle_description/urdf/ dizinine kopyalanacak
 install(
-  DIRECTORY urdf launch
+  DIRECTORY urdf launch config worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
