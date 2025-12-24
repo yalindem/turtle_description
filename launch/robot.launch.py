@@ -85,6 +85,6 @@ def generate_launch_description():
         # Launch the nodes
         rviz2,
         rsp,
-        #ros_gz_bridge,
+        ros_gz_bridge,
         
     ])
