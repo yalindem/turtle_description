@@ -41,7 +41,15 @@
         <gz_frame_id>imu_link</gz_frame_id>
         </sensor>
     </gazebo>
-
+    
+    <gazebo>
+        <plugin 
+        filename="gz-sim-sensors-system"
+        name="gz::sim::systems::Sensors">
+        <render_engine>ogre2</render_engine>
+        </plugin>
+    </gazebo>
+    
     <gazebo reference="laser_frame">
         <sensor name="laser" type="gpu_lidar">
             <pose> 0 0 0 0 0 0 </pose>
@@ -53,10 +61,10 @@
             <lidar>
                 <scan>
                     <horizontal>
-                    <samples>720</samples>
-                    <resolution>1</resolution>
-                    <min_angle>-3.14</min_angle>
-                    <max_angle>3.14</max_angle>
+                        <samples>720</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
                     </horizontal>
                 </scan>
                 <range>
@@ -72,7 +80,7 @@
                 <frame_id>laser_frame</frame_id>
             </lidar>
             <always_on>1</always_on>
-            <visualize>true</visualize>
+            <visualize>1</visualize>
         </sensor>
     </gazebo>
 </robot>
