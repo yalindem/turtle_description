@@ -47,7 +47,8 @@ def generate_launch_description():
         arguments=[
             '--ros-args',
             '-p',
-            f'config_file:={bridge_params}',]
+            f'config_file:={bridge_params}',
+            ]
     )
 
     gz_proc = ExecuteProcess(

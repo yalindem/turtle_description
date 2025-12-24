@@ -16,7 +16,7 @@
     <joint name="chassis_joint" type="fixed">
         <parent link="base_link"/>
         <child link="chassis"/>
-        <origin xyz="-0.1 0 0"/>
+        <origin xyz="-0.1 0 0.05"/>
     </joint>
 
     <link name="chassis">
@@ -43,7 +43,7 @@
     <!-- Left wheel link -->
 
     <joint name="left_wheel_joint" type="continuous">
-        <origin xyz="0 0.175 0" rpy="-${pi/2} 0 0"/>
+        <origin xyz="0 0.175 0.05" rpy="-${pi/2} 0 0"/>
         <child link="left_wheel"/>
         <parent link="base_link"/>
         <axis xyz="0 0 1"/>
@@ -70,7 +70,7 @@
 
     <!-- Right wheel link -->
     <joint name="right_wheel_joint" type="continuous">
-        <origin xyz="0 -0.175 0" rpy="${pi/2} 0 0"/>
+        <origin xyz="0 -0.175 0.05" rpy="${pi/2} 0 0"/>
         <child link="right_wheel"/>
         <parent link="base_link"/>
         <axis xyz="0 0 -1"/>
