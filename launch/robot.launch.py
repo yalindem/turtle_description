@@ -18,7 +18,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration('rviz')
 
     # Path to default world 
-    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'obstacles.world')
+    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'jetty.sdf')
 
     # Launch Arguments
     declare_world = DeclareLaunchArgument(
@@ -60,8 +60,9 @@ def generate_launch_description():
             package='ros_gz_sim',
             executable='create',
             arguments=[
-                '-name', 'my_robot',
-                '-topic', 'robot_description'
+                '-name', 'turtle',
+                '-topic', 'robot_description',
+                '-z', '0.1'
             ],
             output='screen'
     )

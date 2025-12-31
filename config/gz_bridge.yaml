@@ -48,8 +48,27 @@
   direction: GZ_TO_ROS
 
 # gz topic published by Sensors plugin (Camera)
-- ros_topic_name: "camera/camera_info"
-  gz_topic_name: "camera/camera_info"
+- ros_topic_name: "realsense/camera/camera_info"
+  gz_topic_name: "realsense/camera/Image/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+  # gz topic published by Sensors plugin (Camera)
+- ros_topic_name: "/realsense/camera/depth_image"
+  gz_topic_name: "realsense/camera/Image/depth_image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "realsense/camera/image"
+  gz_topic_name: "realsense/camera/Image/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "realsense/camera/points"
+  gz_topic_name: "realsense/camera/Image/points"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
